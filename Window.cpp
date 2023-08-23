@@ -1,19 +1,19 @@
 #include "Window.h"
 
+#include <string>
 namespace snake {
 	SDL_Window* Window::window;
 	SDL_Renderer* Window::renderer;
-	TTF_Font* Window::window_font;
+	std::map<std::string, TTF_Font*> Window::window_fonts;
 
 	int Window::window_width;
 	int Window::window_height; 
 
 
-	Window::Window(const char* title, const int width, const int height, const char* font_path, const Uint32 flags)
+	Window::Window(const char* title, const int width, const int height, const Uint32 flags)
 	{
 		window = nullptr;
 		renderer = nullptr;
-		window_font = nullptr;
 		if (SDL_Init(SDL_INIT_VIDEO) == -1) {
 			std::cerr << "SDL could not be initialized! SDL_Error: " << SDL_GetError() << std::endl;
 			return;
@@ -37,13 +37,6 @@ namespace snake {
 			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "TTF text was not initialized!", SDL_GetError(), nullptr);
 			exit(-1);
 		}
-
-		window_font = TTF_OpenFont(font_path, FONT_SIZE);
-		if (window_font == nullptr) {
-			std::cerr << "TTF failed to open! SDL_Error: " << SDL_GetError() << std::endl;
-			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Failed to open the font!", SDL_GetError(), nullptr);
-			exit(-1);
-		}
 	
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 		SDL_RenderClear(renderer);
@@ -56,7 +49,10 @@ namespace snake {
 	}
 
 	Window::~Window() {
-		if (window_font != nullptr) TTF_CloseFont(window_font);
+		for (const auto& it : window_fonts) {
+			TTF_CloseFont(it.second);
+		}
+
 		if (renderer != nullptr) SDL_DestroyRenderer(renderer);
 		if (window != nullptr) SDL_DestroyWindow(window);
 		TTF_Quit();
@@ -78,7 +74,20 @@ namespace snake {
 		return window;
 	}
 
-	TTF_Font* Window::get_font() {
-		return window_font;
+	TTF_Font* Window::get_font(const std::string& name, int size) {
+		const auto it = window_fonts.find(name + std::to_string(size));
+		if (it != window_fonts.end()) {
+			return it->second;
+		}
+		std::string key = "./";
+		TTF_Font* font = TTF_OpenFont(key.append(name).c_str(), size);
+		if (font == nullptr) {
+			std::cerr << "TTF failed to open! SDL_Error: " << SDL_GetError() << std::endl;
+			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Failed to open the font!", SDL_GetError(), nullptr);
+			return nullptr;
+		}
+
+		window_fonts[name + std::to_string(size)] = font;
+		return font;
 	}
 }

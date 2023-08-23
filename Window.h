@@ -3,6 +3,7 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
 #include <iostream>
+#include <map>
 
 namespace snake {
 	constexpr int FONT_SIZE = 200;
@@ -14,10 +15,9 @@ namespace snake {
 		 * @param title The title of the window.
 		 * @param width The width of the window.
 		 * @param height The height of the window.
-		 * @param font_path Path to the font to use to render text.
 		 * @param flags Flags to set to the window.
 		*/
-		Window(const char* title, int width, int height, const char* font_path, Uint32 flags);
+		Window(const char* title, int width, int height, Uint32 flags);
 
 		~Window();
 
@@ -49,12 +49,12 @@ namespace snake {
 		 * @brief Get font used within the window.
 		 * @return Font used within the window
 		*/
-		static TTF_Font* get_font();
+		static TTF_Font* get_font(const std::string& name, int size);
 
 	private:
 		static SDL_Window* window;
 		static SDL_Renderer* renderer;
-		static TTF_Font* window_font;
+		static std::map<std::string, TTF_Font*> window_fonts;
 		static int window_height;
 		static int window_width;
 	};
