@@ -12,17 +12,20 @@ namespace snake {
 
 	Window::Window(const char* title, const int width, const int height, const Uint32 flags)
 	{
+
 		window = nullptr;
 		renderer = nullptr;
 		if (SDL_Init(SDL_INIT_VIDEO) == -1) {
 			std::cerr << "SDL could not be initialized! SDL_Error: " << SDL_GetError() << std::endl;
-			return;
+			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "SDL could not be initialized!", SDL_GetError(), nullptr);
+			exit(-1);
 		}
-		
+
 		window = SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, flags);
 		if (window == nullptr) {
 			std::cerr << "Window could not be created! SDL_Error: " << SDL_GetError() << std::endl;
-			return;
+			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Window could not be created!", SDL_GetError(), nullptr);
+			exit(-1);
 		}
 
 		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
@@ -37,7 +40,7 @@ namespace snake {
 			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "TTF text was not initialized!", SDL_GetError(), nullptr);
 			exit(-1);
 		}
-	
+
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 		SDL_RenderClear(renderer);
 		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
@@ -79,12 +82,15 @@ namespace snake {
 		if (it != window_fonts.end()) {
 			return it->second;
 		}
-		std::string key = "./";
-		TTF_Font* font = TTF_OpenFont(key.append(name).c_str(), size);
+		std::string key = "/";
+		//Convert relative path to the absolute absolute
+		std::string abs_font_path(SDL_GetBasePath());
+		abs_font_path += key.append(name);
+		TTF_Font* font = TTF_OpenFont(abs_font_path.c_str(), size);
 		if (font == nullptr) {
-			std::cerr << "TTF failed to open! SDL_Error: " << SDL_GetError() << std::endl;
-			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Failed to open the font!", SDL_GetError(), nullptr);
-			return nullptr;
+			std::cerr << "TTF failed to open! SDL_Error: " << TTF_GetError() << std::endl;
+			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Failed to open the font!", TTF_GetError(), nullptr);
+			exit(-1);
 		}
 
 		window_fonts[name + std::to_string(size)] = font;
