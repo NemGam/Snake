@@ -2,7 +2,7 @@
 #define GAME_H
 #include "Text.h"
 #include <random>
-
+#include <SDL2/SDL.h>
 #pragma region CONSTANTS
 constexpr int screen_width = 640;
 constexpr int screen_height = 480;

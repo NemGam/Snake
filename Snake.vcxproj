@@ -71,12 +71,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>D:\Programs\SDL2_ttf-2.20.2\include;D:\Programs\SDL2-2.26.3\include;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\Programs\SDL2_ttf-2.20.2\lib\x64;D:\Programs\SDL2-2.26.3\lib\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\Libraries\SDL2_ttf-2.22.0\x86_64-w64-mingw32\include;D:\Libraries\SDL2-2.30.4\x86_64-w64-mingw32\include;C:\Users\Vladislav\source\repos\Snake\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\Libraries\SDL2_ttf-2.22.0\x86_64-w64-mingw32\lib;D:\Libraries\SDL2-2.30.4\x86_64-w64-mingw32\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>D:\Programs\SDL2_ttf-2.20.2\include;D:\Programs\SDL2-2.26.3\include;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\Programs\SDL2_ttf-2.20.2\lib\x64;D:\Programs\SDL2-2.26.3\lib\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\Libraries\SDL2_ttf-2.22.0\x86_64-w64-mingw32\include;D:\Libraries\SDL2-2.30.4\x86_64-w64-mingw32\include;C:\Users\Vladislav\source\repos\Snake\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\Libraries\SDL2_ttf-2.22.0\x86_64-w64-mingw32\lib;D:\Libraries\SDL2-2.30.4\x86_64-w64-mingw32\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -116,7 +116,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>SDL2.lib;SDL2main.lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\Libraries\SDL2_ttf-2.22.0\x86_64-w64-mingw32\lib;D:\Libraries\SDL2-2.30.4\x86_64-w64-mingw32\lib;SDL2.lib;SDL2main.lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -135,19 +135,21 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>SDL2.lib;SDL2main.lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\Libraries\SDL2_ttf-2.22.0\x86_64-w64-mingw32\lib;D:\Libraries\SDL2-2.30.4\x86_64-w64-mingw32\lib;SDL2.lib;SDL2main.lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Game.cpp" />
-    <ClCompile Include="Main.cpp" />
-    <ClCompile Include="Text.cpp" />
-    <ClCompile Include="Window.cpp" />
+    <ClCompile Include="src\Game.cpp" />
+    <ClCompile Include="src\Logger.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Text.cpp" />
+    <ClCompile Include="src\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Game.h" />
-    <ClInclude Include="Text.h" />
-    <ClInclude Include="Window.h" />
+    <ClInclude Include="src\Game.h" />
+    <ClInclude Include="src\Logger.h" />
+    <ClInclude Include="src\Text.h" />
+    <ClInclude Include="src\Window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

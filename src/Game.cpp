@@ -1,13 +1,18 @@
-#include <iostream>
 #include "Game.h"
 #include "Window.h"
+#include <SDL2/SDL.h>
 namespace snake {
+
+	
+
 	SDL_Event event;
 
 	Game::Game(Window* window)
-		: snake_length(3), food_pos(0), exit_code(0), direction(1), head_position(grid_height / 2 * grid_width + grid_width / 2),
-		score_text(window, Window::get_font("GILB____.TTF", 60), window->get_width() - 60, 40, std::to_string(snake_length), Text::right, {130, 130, 130, 255}),
-		game_over_text(window, Window::get_font("GILB____.TTF", 50), window->get_width() / 2, window->get_height() / 2 + 90, "Press 'R' to restart", Text::middle, { 200, 200, 200, 255 }) {
+		: snake_length(3), food_pos(0), exit_code(0), direction(1),
+		  head_position(grid_height / 2 * grid_width + grid_width / 2), is_running(false), is_aborting(false),
+		score_text(window, Window::get_font("GILB____.TTF", 60), window->GetWidth() - 60, 40, std::to_string(snake_length), Text::right, {130, 130, 130, 255}),
+		game_over_text(window, Window::get_font("GILB____.TTF", 50), window->GetWidth() / 2, window->GetHeight() / 2 + 90, "Press 'R' to restart", Text::middle, { 200, 200, 200, 255 })
+	{
 
 		std::random_device dev;
 		random_engine = std::mt19937(dev());
@@ -41,7 +46,7 @@ namespace snake {
 
 		//Render game over text once and wait for input
 		game_over_text.render();
-		SDL_RenderPresent(window->get_renderer());
+		SDL_RenderPresent(window->GetRenderer());
 		while (exit_code == 0) {
 			handle_input();
 			SDL_Delay(200);
@@ -75,23 +80,23 @@ namespace snake {
 	}
 
 	void Game::render() const {
-		SDL_SetRenderDrawColor(window->get_renderer(), 0, 0, 0, 255);
-		SDL_RenderClear(window->get_renderer());
-		SDL_SetRenderDrawColor(window->get_renderer(), 255, 255, 255, 255);
+		SDL_SetRenderDrawColor(window->GetRenderer(), 0, 0, 0, 255);
+		SDL_RenderClear(window->GetRenderer());
+		SDL_SetRenderDrawColor(window->GetRenderer(), 255, 255, 255, 255);
 
 
 		//Render snake
 		for (unsigned int i = 0; i < snake_length; i++)
-			SDL_RenderFillRect(window->get_renderer(), &render_grid[snake_poses[i]]);
+			SDL_RenderFillRect(window->GetRenderer(), &render_grid[snake_poses[i]]);
 
 		//Render food
-		SDL_SetRenderDrawColor(window->get_renderer(), 0, 255, 0, 255);
-		SDL_RenderFillRect(window->get_renderer(), &render_grid[food_pos]);
+		SDL_SetRenderDrawColor(window->GetRenderer(), 0, 255, 0, 255);
+		SDL_RenderFillRect(window->GetRenderer(), &render_grid[food_pos]);
 
 		//Render score
 		score_text.render();
 
-		SDL_RenderPresent(window->get_renderer());
+		SDL_RenderPresent(window->GetRenderer());
 	}
 
 
@@ -192,9 +197,8 @@ namespace snake {
 		{
 			increase_snake();
 		}
-		else if (is_cell_snake(head_position, false))
-			game_over();
-		else if ((head_position < 0) || //Checking top border
+		else if (is_cell_snake(head_position, false) || 
+			(head_position < 0) || //Checking top border
 			(head_position > grid_area) || //Checking bottom border
 			abs(static_cast<int>(head_position % grid_width) - static_cast<int>(head_position - direction) % grid_width) == grid_width - 1 || //Checking left border
 			(head_position % grid_width == 0 && (head_position - direction) % grid_width == grid_width - 1)) //Checking right border

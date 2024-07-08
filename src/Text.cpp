@@ -15,7 +15,7 @@ namespace snake {
 		this->rect = surface->clip_rect;
 
 		//Create a texture from the created surface
-		this->text_texture = SDL_CreateTextureFromSurface(window->get_renderer(), surface);
+		this->text_texture = SDL_CreateTextureFromSurface(window->GetRenderer(), surface);
 		if (!this->text_texture){
 			std::cerr << "Failed to create a texture: " << TTF_GetError() << std::endl;
 			return;
@@ -59,7 +59,7 @@ namespace snake {
 		}
 
 		SDL_DestroyTexture(text_texture);
-		text_texture = SDL_CreateTextureFromSurface(window->get_renderer(), surface);
+		text_texture = SDL_CreateTextureFromSurface(window->GetRenderer(), surface);
 		if (!text_texture) {
 			std::cerr << "Failed to create a texture: " << TTF_GetError() << std::endl;
 			return;
@@ -81,6 +81,6 @@ namespace snake {
 	}
 
 	void Text::render() const {
-		SDL_RenderCopy(window->get_renderer(), text_texture, nullptr, &rect);
+		SDL_RenderCopy(window->GetRenderer(), text_texture, nullptr, &rect);
 	}
 }
