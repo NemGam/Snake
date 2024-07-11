@@ -7,7 +7,7 @@ The Snake game recreated with C++ and SDL2
 Windows build can be downloaded [here](https://github.com/NemGam/Snake/releases/download/v1.1.0/Snake.zip). Just unpack to any folder and run snake.exe. 
 # Getting Started (Linux)
 ## Dependencies
-- CMake (version 3.10 or higher recommended)
+- CMake (version 3.7 or higher recommended)
 - C++ Compiler: Compatible with C++17 standard
 - SDL2 (>= 2.0.20)
 - SDL2-ttf (>= 2.0.18)
