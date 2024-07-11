@@ -4,36 +4,52 @@
 #include <SDL2/SDL_ttf.h>
 #include <string>
 #include <iostream>
-#include "Window.h"
+#include "window.h"
 
 namespace snake {
 
+	//TODO: FIX SEG FAULT. GETTING DOUBLE DELETE OF FONT PROBABLY WHICH IS OWNED BY WINDOW
+
 	class Text {
 	public:
-		enum text_alignment { left = 0, middle = 1, right = 2 };
+		enum class TextAlignment { kLeft = 0, kMiddle = 1, kRight = 2 };
 
-		Text(Window* window, TTF_Font* font, int xpos, int ypos, const std::string& = " ", text_alignment alignment = left, SDL_Color color = {255, 255, 255, 255});
 
-		~Text();
+		static std::unique_ptr<Text> Create(const Window& window, TTF_Font* font, int x_pos, int y_pos, 
+			const std::string& text = "New Text", TextAlignment alignment = TextAlignment::kLeft, 
+			SDL_Color color = { 255, 255, 255, 255 });
 
-		/**
-		 * @brief Set the text of this text object.
-		 * @param text text to set.
-		*/
-		void set_text(const std::string& text);
 
-		void render() const;
+		Text(const Text&) = delete;
+		Text(Text&& t) = delete;
+		Text& operator=(const Text&) = delete;
+		Text&& operator=(Text&& t) = delete;
+		
+
+		~Text() = default;
+
+
+		void SetText(const std::string& text);
+		void Render() const;
+
 
 	private:
-		Window* window;
+		Text(const Window& window, TTF_Font* font, int x_pos, int y_pos, const std::string& text,
+			std::unique_ptr<SDL_Texture, SdlTextureDestructor> text_texture, TextAlignment alignment, SDL_Color color);
 
-		SDL_Rect rect;
-		TTF_Font* font;
-		SDL_Texture* text_texture;
-		SDL_Color color;
-		text_alignment alignment;
 
-		void recreate(const std::string& text);
+		void Regenerate();
+		SDL_Rect GetAlignedRect(SDL_Rect rect, TextAlignment alignment); //Modifies provided rect to be of a given alignment
+
+		int x_pos_;
+		int y_pos_;
+		std::string text_;
+		const Window& window_;
+		SDL_Rect rect_;
+		TTF_Font* font_;
+		std::unique_ptr<SDL_Texture, SdlTextureDestructor> text_texture_;
+		SDL_Color color_;
+		TextAlignment alignment_;
 	};
 }
 #endif

@@ -1,154 +1,152 @@
-#include "Game.h"
-#include "Window.h"
+#include "game.h"
+#include "window.h"
 #include <SDL2/SDL.h>
-namespace snake {
 
-	
+namespace snake {
 
 	SDL_Event event;
 
-	Game::Game(Window* window)
-		: snake_length(3), food_pos(0), exit_code(0), direction(1),
-		  head_position(grid_height / 2 * grid_width + grid_width / 2), is_running(false), is_aborting(false),
-		score_text(window, Window::get_font("GILB____.TTF", 60), window->GetWidth() - 60, 40, std::to_string(snake_length), Text::right, {130, 130, 130, 255}),
-		game_over_text(window, Window::get_font("GILB____.TTF", 50), window->GetWidth() / 2, window->GetHeight() / 2 + 90, "Press 'R' to restart", Text::middle, { 200, 200, 200, 255 })
+	Game::Game(const Window& window)
+		: window_(window), direction_(1), exit_code_(0), snake_length_(3),
+		food_pos_(0),
+		head_position_(kGridHeight / 2 * kGridWidth + kGridWidth / 2), is_running_(false), is_aborting_(false)
 	{
-
+		score_text_ = std::unique_ptr<Text>(Text::Create(window, window.GetFont("GILB____.TTF", 60), window.GetWidth() - 60, 40, std::to_string(snake_length_), Text::TextAlignment::kRight, { 130, 130, 130, 255 }));
+		game_over_text_ = std::unique_ptr<Text>(Text::Create(window, window.GetFont("GILB____.TTF", 40), window.GetWidth() / 2, window.GetHeight() / 2 + 90, "Press 'R' to restart", Text::TextAlignment::kMiddle, { 200, 200, 200, 255 }));
 		std::random_device dev;
-		random_engine = std::mt19937(dev());
-		this->window = window;
+		random_engine_ = std::mt19937(dev());
 	}
 
-	Game::~Game() = default;
-
-	int Game::run() {
-		is_running = true;
-		is_aborting = false;
-		if (!init()) return -1;
+	int Game::Run() {
+		is_running_ = true;
+		is_aborting_ = false;
+		if (!Init()) return -1;
 
 
-		while (is_running){
+		while (is_running_){
 			//Handle input
-			handle_input();
+			HandleInput();
 
 			//Move the snake
-			update_position();
+			UpdatePosition();
 
 			//Check collisions
-			check_snake_collisions();
+			CheckSnakeCollisions();
 
 			//Render snake & food
-			render();
+			Render();
 
 			SDL_Delay(132);
 		}
-		if (is_aborting) return exit_code;
+		if (is_aborting_) return exit_code_;
 
 		//Render game over text once and wait for input
-		game_over_text.render();
-		SDL_RenderPresent(window->GetRenderer());
-		while (exit_code == 0) {
-			handle_input();
+		game_over_text_->Render();
+		SDL_RenderPresent((window_.GetRenderer()));
+		while (exit_code_ == 0) {
+			HandleInput();
 			SDL_Delay(200);
 		}
-		return exit_code;
+		return exit_code_;
 	}
 
 	
-	void Game::abort(const int code) {
-		this->exit_code = code;
-		this->is_aborting = true;
-		this->is_running = false;
+	void Game::Abort(const int code) {
+		this->exit_code_ = code;
+		this->is_aborting_ = true;
+		this->is_running_ = false;
 	}
 
-	bool Game::init() {
+	bool Game::Init() {
 
 		//Filling array of cells to draw later
-		for (int i = 0; i < grid_height; i++)
+		for (int i = 0; i < kGridHeight; i++)
 		{
-			for (int j = 0; j < grid_width; j++)
+			for (int j = 0; j < kGridWidth; j++)
 			{
-				render_grid[i * grid_width + j] = { cell_size * j, cell_size * i, cell_size, cell_size };
+				render_grid_[i * kGridWidth + j] = { kCellSize * j, kCellSize * i, kCellSize, kCellSize };
 			}
 		}
 
-		snake_poses[0] = head_position;
-		snake_poses[1] = head_position;
-		snake_poses[2] = head_position;
-		spawn_food();
+		snake_poses_[0] = head_position_;
+		snake_poses_[1] = head_position_;
+		snake_poses_[2] = head_position_;
+		SpawnFood();
 		return true;
 	}
 
-	void Game::render() const {
-		SDL_SetRenderDrawColor(window->GetRenderer(), 0, 0, 0, 255);
-		SDL_RenderClear(window->GetRenderer());
-		SDL_SetRenderDrawColor(window->GetRenderer(), 255, 255, 255, 255);
+	void Game::Render() const {
+		SDL_Renderer* renderer = const_cast<SDL_Renderer*>(window_.GetRenderer());
+
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+		SDL_RenderClear(renderer);
+		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
 
 		//Render snake
-		for (unsigned int i = 0; i < snake_length; i++)
-			SDL_RenderFillRect(window->GetRenderer(), &render_grid[snake_poses[i]]);
+		for (unsigned int i = 0; i < snake_length_; i++)
+			SDL_RenderFillRect(renderer, &render_grid_[snake_poses_[i]]);
 
 		//Render food
-		SDL_SetRenderDrawColor(window->GetRenderer(), 0, 255, 0, 255);
-		SDL_RenderFillRect(window->GetRenderer(), &render_grid[food_pos]);
+		SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+		SDL_RenderFillRect(renderer, &render_grid_[food_pos_]);
 
 		//Render score
-		score_text.render();
+		score_text_->Render();
 
-		SDL_RenderPresent(window->GetRenderer());
+		SDL_RenderPresent(renderer);
 	}
 
 
-	void Game::handle_input() {
+	void Game::HandleInput() {
 
 		bool called_event = false;
-		while (SDL_PollEvent(&event))
+		while (SDL_PollEvent(&event_))
 		{
 			if (called_event) continue;
 
-			switch (event.type)
+			switch (event_.type)
 			{
 			case SDL_QUIT:
-				abort(-1);
+				Abort(-1);
 				break;
 
 			case SDL_KEYDOWN:
-				switch (event.key.keysym.scancode)
+				switch (event_.key.keysym.scancode)
 				{
 				case SDL_SCANCODE_UP:
 				case SDL_SCANCODE_W:
-					if (direction == grid_width || direction == -grid_width) break;
-					direction = -grid_width;
+					if (direction_ == kGridWidth || direction_ == -kGridWidth) break;
+					direction_ = -kGridWidth;
 					called_event = true;
 					break;
 
 				case SDL_SCANCODE_RIGHT:
 				case SDL_SCANCODE_D:
-					if (direction == -1 || direction == 1) break;
-					direction = 1;
+					if (direction_ == -1 || direction_ == 1) break;
+					direction_ = 1;
 					called_event = true;
 					break;
 
 				case SDL_SCANCODE_DOWN:
 				case SDL_SCANCODE_S:
-					if (direction == grid_width || direction == -grid_width) break;
-					direction = grid_width;
+					if (direction_ == kGridWidth || direction_ == -kGridWidth) break;
+					direction_ = kGridWidth;
 					called_event = true;
 					break;
 
 				case SDL_SCANCODE_LEFT:
 				case SDL_SCANCODE_A:
-					if (direction == -1 || direction == 1) break;
-					direction = -1;
+					if (direction_ == -1 || direction_ == 1) break;
+					direction_ = -1;
 					called_event = true;
 					break;
 
 				case SDL_SCANCODE_R:
-					abort(1);
+					Abort(1);
 					break;
 			case SDL_SCANCODE_ESCAPE:
-					abort(-1);
+					Abort(-1);
 					break;
 				default:
 					break;
@@ -160,58 +158,58 @@ namespace snake {
 		}
 	}
 
-	void Game::game_over() {
-		is_running = false;
+	void Game::GameOver() {
+		is_running_ = false;
 	}
 
-	void Game::update_position() {
-		for (unsigned int i = snake_length - 1; i > 0; --i)
+	void Game::UpdatePosition() {
+		for (unsigned int i = snake_length_ - 1; i > 0; --i)
 		{
-			snake_poses[i] = snake_poses[i - 1];
+			snake_poses_[i] = snake_poses_[i - 1];
 		}
-		snake_poses[0] = head_position;
-		head_position += direction;
+		snake_poses_[0] = head_position_;
+		head_position_ += direction_;
 	}
 
-	void Game::spawn_food() {
+	void Game::SpawnFood() {
 		//Choose random position until it finds the free one
-		do food_pos = random_engine() % grid_area;
-		while (is_cell_snake(food_pos, true));
+		do food_pos_ = random_engine_() % kGridArea;
+		while (IsCellOccupied(food_pos_, true));
 	}
 
-	bool Game::is_cell_snake(const unsigned int check, const bool food_check) const {
-		for (unsigned int i = 0; i < snake_length; i++)
+	bool Game::IsCellOccupied(const unsigned int check, const bool food_check) const {
+		for (unsigned int i = 0; i < snake_length_; i++)
 		{
-			if (check == snake_poses[i])
+			if (check == snake_poses_[i])
 			{
 				return true;
 			}
 		}
-		if (food_check) return check == head_position;
+		if (food_check) return check == head_position_;
 		return false;
 	}
 
-	void Game::check_snake_collisions()
+	void Game::CheckSnakeCollisions()
 	{
-		if (head_position == food_pos)
+		if (head_position_ == food_pos_)
 		{
-			increase_snake();
+			IncreaseSnake();
 		}
-		else if (is_cell_snake(head_position, false) || 
-			(head_position < 0) || //Checking top border
-			(head_position > grid_area) || //Checking bottom border
-			abs(static_cast<int>(head_position % grid_width) - static_cast<int>(head_position - direction) % grid_width) == grid_width - 1 || //Checking left border
-			(head_position % grid_width == 0 && (head_position - direction) % grid_width == grid_width - 1)) //Checking right border
+		else if (IsCellOccupied(head_position_, false) || 
+			(head_position_ < 0) || //Checking top border
+			(head_position_ > kGridArea) || //Checking bottom border
+			abs(static_cast<int>(head_position_ % kGridWidth) - static_cast<int>(head_position_ - direction_) % kGridWidth) == kGridWidth - 1 || //Checking left border
+			(head_position_ % kGridWidth == 0 && (head_position_ - direction_) % kGridWidth == kGridWidth - 1)) //Checking right border
 		{
-			game_over();
+			GameOver();
 		}
 	}
 
-	void Game::increase_snake()
+	void Game::IncreaseSnake()
 	{
-		snake_poses[snake_length] = snake_poses[snake_length - 1];
-		snake_length++;
-		score_text.set_text(std::to_string(snake_length));
-		spawn_food();
+		snake_poses_[snake_length_] = snake_poses_[snake_length_ - 1];
+		snake_length_++;
+		score_text_->SetText(std::to_string(snake_length_));
+		SpawnFood();
 	}
 }

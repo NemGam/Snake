@@ -1,86 +1,93 @@
-#include "Text.h"
-#include "Window.h"
+#include "text.h"
+
+#include "logger.h"
+#include "window.h"
+#include "unique_ptrs_destructors.h"
+
 namespace snake {
-	Text::Text(Window* window, TTF_Font* font, int xpos, int ypos, const std::string& text, const text_alignment alignment, SDL_Color color)
-		: rect{ 0, 0, 0, 0 }, font(font), text_texture(nullptr), color(color), alignment(alignment)
+
+	Text::Text(const Window& window, TTF_Font* font, int x_pos, int y_pos, const std::string& text, std::unique_ptr<SDL_Texture, SdlTextureDestructor> text_texture, 
+	           TextAlignment alignment, SDL_Color color)
+		: x_pos_(x_pos), y_pos_(y_pos), text_(text), window_(window), rect_{ 0, 0, 0, 0 },
+		font_(font), text_texture_(std::move(text_texture)), color_(color), alignment_(alignment)
 	{
-		this->window = window;
+		
+		logger::Log("Created Text");
+		TTF_SizeUTF8(font_, text_.c_str(), &rect_.w, &rect_.h);
+		rect_ = GetAlignedRect(rect_, alignment);
+	}
+
+	std::unique_ptr<Text> Text::Create(const Window& window, TTF_Font* font, int x_pos, int y_pos, const std::string& text,
+	                                   TextAlignment alignment, SDL_Color color) {
 		//Create a surface
-		SDL_Surface* surface = TTF_RenderUTF8_Solid(font, text.c_str(), color);
+		auto surface = std::unique_ptr<SDL_Surface, SdlSurfaceDestructor>(TTF_RenderUTF8_Solid(font, text.c_str(), color));
 		if (!surface) {
-			std::cerr << "Failed to create a text: " << TTF_GetError() << std::endl;
-			return;
+			logger::LogAndShowError(TTF_GetError());
+			return nullptr;
 		}
-		//Set text rect to the created surface rect
-		this->rect = surface->clip_rect;
+
+		logger::Log(std::to_string(surface->clip_rect.h) + " " + std::to_string(surface->clip_rect.w));
 
 		//Create a texture from the created surface
-		this->text_texture = SDL_CreateTextureFromSurface(window->GetRenderer(), surface);
-		if (!this->text_texture){
-			std::cerr << "Failed to create a texture: " << TTF_GetError() << std::endl;
-			return;
-		}
+		auto text_texture = 
+			std::unique_ptr<SDL_Texture, SdlTextureDestructor>(
+				SDL_CreateTextureFromSurface((window.GetRenderer()), surface.get()));
 
-		//Move the text according to desired alignment
-		switch (alignment) {
-		case left:
-			this->rect = { xpos - rect.w / 2 - rect.w, ypos - rect.h / 2, rect.w, rect.h };
-			break;
-		case middle:
-			this->rect = { xpos - rect.w / 2, ypos - rect.h / 2, rect.w, rect.h };
-			break;
-		case right:
-			this->rect = { xpos - rect.w / 2 + rect.w, ypos - rect.h / 2, rect.w, rect.h };
-			break;
-		}
-
-		//Get rid of the surface
-		SDL_FreeSurface(surface);
-	}
-
-	Text::~Text() {
-		SDL_DestroyTexture(this->text_texture);
-	}
-
-	/**
-	 * \brief Set the text of the Text object.
-	 * \param text the text to set
-	 */
-	void Text::set_text(const std::string& text) {
-		recreate(text);
-	}
-
-	void Text::recreate(const std::string& text) {
-		SDL_Surface* surface = TTF_RenderUTF8_Solid(font, text.c_str(), color);
-		if (!surface) {
-			std::cerr << "Failed to create a surface: " << TTF_GetError() << std::endl;
-			SDL_FreeSurface(surface);	
-			return;
-		}
-
-		SDL_DestroyTexture(text_texture);
-		text_texture = SDL_CreateTextureFromSurface(window->GetRenderer(), surface);
 		if (!text_texture) {
-			std::cerr << "Failed to create a texture: " << TTF_GetError() << std::endl;
-			return;
+			logger::LogAndShowError(TTF_GetError());
+			return nullptr;
 		}
-		const int prev_w = rect.w;
-		TTF_SizeUTF8(font, text.c_str(), &rect.w, &rect.h);
-		switch (alignment) {
-		case left:
-			rect = { rect.x, rect.y, rect.w, rect.h };
-			break;
-		case middle: 
-			rect = { (rect.x + (prev_w - rect.w) / 2), rect.y, rect.w, rect.h };
-			break;
-		case right: 
-			rect = { (rect.x + (prev_w - rect.w)), rect.y, rect.w, rect.h };
-			break;
-		}
-		SDL_FreeSurface(surface);
+
+		return std::unique_ptr<Text>(new Text(window, font, x_pos, y_pos, text, std::move(text_texture), alignment, color));
 	}
 
-	void Text::render() const {
-		SDL_RenderCopy(window->GetRenderer(), text_texture, nullptr, &rect);
+	void Text::SetText(const std::string& text) {
+		text_ = text;
+		Regenerate();
+	}
+
+	void Text::Regenerate() {
+		auto surface = std::unique_ptr<SDL_Surface, SdlSurfaceDestructor>(TTF_RenderUTF8_Solid(font_, text_.c_str(), color_));
+		if (!surface) {
+			logger::LogAndShowError(TTF_GetError());
+			return;
+		}
+
+		//Destroy the old texture and create a new one
+		text_texture_.reset(SDL_CreateTextureFromSurface((window_.GetRenderer()), surface.get()));
+
+		if (!text_texture_) {
+			logger::LogAndShowError(TTF_GetError());
+			return;
+		}
+
+		TTF_SizeUTF8(font_, text_.c_str(), &rect_.w, &rect_.h);
+		rect_ = GetAlignedRect(rect_, alignment_);
+	}
+
+	SDL_Rect Text::GetAlignedRect(SDL_Rect rect, TextAlignment alignment) {
+
+		rect.y = y_pos_;
+
+		switch (alignment) {
+			case TextAlignment::kLeft:
+				rect.x = x_pos_;
+				break;
+			case TextAlignment::kMiddle:
+				rect.x = x_pos_ - rect.w / 2;
+				break;
+			case TextAlignment::kRight:
+				rect.x = x_pos_ - rect.w;
+				break;
+		}
+
+		return rect;
+	}
+
+	void Text::Render() const {
+
+		if (SDL_RenderCopy((window_.GetRenderer()), text_texture_.get(), nullptr, &rect_) != 0) {
+			logger::Log(SDL_GetError());
+		}
 	}
 }

@@ -1,15 +1,16 @@
 #ifndef GAME_H
 #define GAME_H
-#include "Text.h"
+#include "text.h"
 #include <random>
 #include <SDL2/SDL.h>
+
 #pragma region CONSTANTS
-constexpr int screen_width = 640;
-constexpr int screen_height = 480;
-constexpr int cell_size = 16;
-constexpr int grid_width = screen_width / cell_size;
-constexpr int grid_height = screen_height / cell_size;
-constexpr int grid_area = grid_height * grid_width;
+constexpr int kScreenWidth = 640;
+constexpr int kScreenHeight = 480;
+constexpr int kCellSize = 16;
+constexpr int kGridWidth = kScreenWidth / kCellSize;
+constexpr int kGridHeight = kScreenHeight / kCellSize;
+constexpr int kGridArea = kGridHeight * kGridWidth;
 #pragma endregion
 
 
@@ -17,67 +18,60 @@ namespace snake {
 	class Game {
 	public:
 
-		Game(Window* window);
-		~Game();
-		int run();
+		explicit Game(const Window& window);
+		Game(Game& g) = delete;
+		Game(Game&& g) = delete;
+		Game& operator=(Game& g) = delete;
+		Game&& operator=(Game&& g) = delete;
+
+		~Game() = default;
+
+		int Run();
 
 	private:
+		//Stop the program
+		void Abort(int code);
 
-		Window* window;
+		//Game loop functions
+		bool Init();
+		void Render() const;
+		void HandleInput();
+		void UpdatePosition();
+		void CheckSnakeCollisions();
 
-		std::mt19937 random_engine; //Randomizer
+		void SpawnFood();
+		//Checks if given position is occupied by snake (or food if food_check is set to true)
+		bool IsCellOccupied(unsigned int check, bool food_check = false) const;
+		void IncreaseSnake();
+		void GameOver();
 
-		SDL_Rect render_grid[grid_area]{}; //Grid of rectangles used to render everything
-		SDL_Event event{};
 
-		unsigned int snake_length;
-		unsigned int snake_poses[grid_area]{}; //Positions of all snake segments
+		const Window& window_;
 
-		unsigned int food_pos;
+		std::mt19937 random_engine_;
 
-		int exit_code;
+		SDL_Rect render_grid_[kGridArea]{}; //Grid of rectangles used to render everything
+		SDL_Event event_{};
 
-		/// <summary>
-		/// W = -GRID_WIDTH.
-		/// S = GRID_WIDTH.
-		/// A = -1.
-		/// D = 1.
-		/// </summary>
-		int direction;
+		// W = -GRID_WIDTH. S = GRID_WIDTH.
+		// A = -1. D = 1.
+		int direction_;
+		int exit_code_;
+		unsigned int snake_length_;
+		unsigned int snake_poses_[kGridArea]{}; //Positions of all snake segments
+		unsigned int food_pos_;
+		unsigned int head_position_; 
 
-		unsigned int head_position; 
+		bool is_running_;
+		bool is_aborting_;
 
-		bool is_running;
-		bool is_aborting;
+		std::unique_ptr<Text> score_text_;
+		std::unique_ptr<Text> game_over_text_;
+
 
 		
-		Text score_text;
-		Text game_over_text;
 
-		//Initialize the game
-		bool init();
 
-		/**
-		 * \brief Stop the game loop and skip final input check
-		 * \param code Code to exit with
-		 */
-		void abort(int code);
-		void render() const;
-		void handle_input();
-		void update_position();
-		void spawn_food();
-
-		/**
-		 * \brief Checks if given position is occupied by snake
-		 * \param check Value to check
-		 * \param food_check Is this check called by food_spawn()?
-		 * \return True - if cell is occupied by snake, False - if not
-		 */
-		bool is_cell_snake(unsigned int check, bool food_check = false) const;
-
-		void check_snake_collisions();
-		void increase_snake();
-		void game_over();
 	};
 }
 #endif

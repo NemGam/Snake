@@ -1,4 +1,4 @@
-#include "Logger.h"
+#include "logger.h"
 #include <iostream>
 #include <SDL2/SDL.h>
 

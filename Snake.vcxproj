@@ -139,17 +139,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\Game.cpp" />
-    <ClCompile Include="src\Logger.cpp" />
+    <ClCompile Include="src\game.cpp" />
+    <ClCompile Include="src\logger.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\Text.cpp" />
-    <ClCompile Include="src\Window.cpp" />
+    <ClCompile Include="src\text.cpp" />
+    <ClCompile Include="src\unique_ptrs_destructors.cpp" />
+    <ClCompile Include="src\window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Game.h" />
-    <ClInclude Include="src\Logger.h" />
-    <ClInclude Include="src\Text.h" />
-    <ClInclude Include="src\Window.h" />
+    <ClInclude Include="src\game.h" />
+    <ClInclude Include="src\logger.h" />
+    <ClInclude Include="src\text.h" />
+    <ClInclude Include="src\unique_ptrs_destructors.h" />
+    <ClInclude Include="src\window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
