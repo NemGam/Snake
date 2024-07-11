@@ -38,7 +38,6 @@ int main(int argc, char* argv[])
 		
 	}
 
-	logger::Log("Exiting");
 	TTF_Quit();
 	SDL_Quit();
 	return 0;

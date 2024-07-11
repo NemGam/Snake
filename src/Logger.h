@@ -13,6 +13,4 @@ namespace logger {
 	//Logs given error message and shows the SDL_MessageBox with that message.
 	void LogAndShowError(const std::string& message, SDL_Window* window = nullptr);
 }
-
-
 #endif // LOGGER_H

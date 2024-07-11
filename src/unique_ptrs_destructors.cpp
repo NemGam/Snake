@@ -21,9 +21,7 @@ namespace snake {
 	}
 
 	void TtfFontDestructor::operator()(TTF_Font* f) const {
-		logger::Log("Destroying font");
 		TTF_CloseFont(f);
-		logger::Log("Destroyed font");
 	}
 
 }

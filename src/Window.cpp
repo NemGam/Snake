@@ -57,11 +57,11 @@ namespace snake {
 		return window_width_;
 	}
 
-	SDL_Renderer* Window::GetRenderer() const {
+	const SDL_Renderer* Window::GetRenderer() const {
 		return sdl_renderer_.get();
 	}
 
-	TTF_Font* Window::GetFont(const std::string& name, int size) const {
+	const TTF_Font* Window::GetFont(const std::string& name, int size) const {
 		const auto it = window_fonts_.find(name + std::to_string(size));
 		if (it != window_fonts_.end()) {
 			return it->second.get();
@@ -78,11 +78,11 @@ namespace snake {
 		if (font == nullptr) {
 			logger::LogAndShowError(TTF_GetError());
 			TTF_CloseFont(font);
-			exit(-1);
+			return nullptr;
 		}
 
 		window_fonts_[name + std::to_string(size)] = std::unique_ptr<TTF_Font, TtfFontDestructor>(font);
-		logger::Log("Created font: " + name + std::to_string(size));
+
 		return font;
 	}
 }

@@ -4,14 +4,12 @@
 #include <random>
 #include <SDL2/SDL.h>
 
-#pragma region CONSTANTS
 constexpr int kScreenWidth = 640;
 constexpr int kScreenHeight = 480;
 constexpr int kCellSize = 16;
 constexpr int kGridWidth = kScreenWidth / kCellSize;
 constexpr int kGridHeight = kScreenHeight / kCellSize;
 constexpr int kGridArea = kGridHeight * kGridWidth;
-#pragma endregion
 
 
 namespace snake {
@@ -40,8 +38,8 @@ namespace snake {
 		void CheckSnakeCollisions();
 
 		void SpawnFood();
-		//Checks if given position is occupied by snake (or food if food_check is set to true)
-		bool IsCellOccupied(unsigned int check, bool food_check = false) const;
+		//Checks if given position is occupied by snake
+		bool IsCellOccupied(int check) const;
 		void IncreaseSnake();
 		void GameOver();
 
@@ -57,10 +55,10 @@ namespace snake {
 		// A = -1. D = 1.
 		int direction_;
 		int exit_code_;
-		unsigned int snake_length_;
-		unsigned int snake_poses_[kGridArea]{}; //Positions of all snake segments
-		unsigned int food_pos_;
-		unsigned int head_position_; 
+		int snake_length_;
+		int snake_poses_[kGridArea]{}; //Positions of all snake segments
+		int food_pos_;
+		int head_position_; 
 
 		bool is_running_;
 		bool is_aborting_;
